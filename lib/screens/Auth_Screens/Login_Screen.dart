@@ -1,5 +1,8 @@
 import 'package:cli_testing/screens/Auth_Screens/Signup_Screen.dart';
+import 'package:cli_testing/screens/Home_Screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -10,6 +13,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
 
+  bool isLoading = false;
   final _formKey = GlobalKey<FormState>();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
@@ -22,9 +26,31 @@ class _LoginScreenState extends State<LoginScreen> {
     passwordController.dispose();
   }
 
-  void Login(){
+  /// Login backend logic from here...
+  FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+  void login(){
     if(_formKey.currentState!.validate()){
+      setState(() {
+        isLoading = true;
+      });
       // login backend code here...
+      firebaseAuth.signInWithEmailAndPassword(
+          email: emailController.text.toString(),
+          password: passwordController.text.toString()).then((value){
+            // if login process completed, "then" Block executes
+            setState(() {
+              isLoading = false;
+            });
+            Fluttertoast.showToast(msg: " User ${value.user!.email.toString()} has successfully login");
+            /// Don't use 'BuildContext's across async gaps...
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomeScreen(),));
+          }).onError((error, stackTrace) {
+            // in case of any error, we can catch here.
+            Fluttertoast.showToast(msg: error.toString());
+            setState(() {
+              isLoading = false;
+            });
+          },);
     }
   }
 
@@ -51,9 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Text(" Enter Email", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),),
                       TextFormField(
                         controller: emailController,
-                        onFieldSubmitted: (value){
-
-                        },
+                        onFieldSubmitted: (value){},
                         validator: (value){
                           if(value!.isEmpty){
                             return "Enter Email";
@@ -88,9 +112,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Text(" Enter Password", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),),
                       TextFormField(
                         controller: passwordController,
-                        onFieldSubmitted: (value){
-
-                        },
+                        onFieldSubmitted: (value){},
                         validator: (value){
                           if(value!.isEmpty){
                             return "Enter Password";
@@ -130,11 +152,17 @@ class _LoginScreenState extends State<LoginScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
                     style: ButtonStyle(backgroundColor: WidgetStateProperty.all(Colors.purple),),
-                    onPressed: () => Login(),
-                    child: Text("Login", style: TextStyle(fontWeight: FontWeight.w800,fontSize: 18, color: Colors.white),)
+                    onPressed: () => login(),
+                    child: isLoading ? Padding(
+                      padding: const EdgeInsets.all(6.0),
+                      child: CircularProgressIndicator( color: Colors.white,),
+                    ) :
+                    Text("Login", style: TextStyle(fontWeight: FontWeight.w800,fontSize: 18, color: Colors.white),)
                 ),
               ),
               SizedBox(height: 8),
+
+              /// Don't have an account Signup button.
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
