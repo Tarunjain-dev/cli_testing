@@ -20,3 +20,16 @@ class AppRoutes{
     GetPage(name: "/addNewFirestoreData", page: ()=> AddNewFirestoreDataScreen()),
   ];
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
