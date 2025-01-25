@@ -1,18 +1,20 @@
-import 'dart:developer';
+import 'package:cli_testing/app/screens/auth/login/login_controller.dart';
+import 'package:cli_testing/app/screens/auth/signup/signup_screen.dart';
+import 'package:cli_testing/app/screens/home/home_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:get/get.dart';
 
-class SignupScreen extends StatefulWidget {
-  const SignupScreen({super.key});
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
 
   @override
-  State<SignupScreen> createState() => _SignupScreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _SignupScreenState extends State<SignupScreen> {
+class _LoginScreenState extends State<LoginScreen> {
 
-  bool isLoading = false;
+  LoginController loginController = Get.put(LoginController());
   final _formKey = GlobalKey<FormState>();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
@@ -25,31 +27,13 @@ class _SignupScreenState extends State<SignupScreen> {
     passwordController.dispose();
   }
 
-  // Signup method login here...
-  FirebaseAuth firebaseAuth = FirebaseAuth.instance;
-  void signUp(){
+  /// Login backend logic from here...
+  void login(){
     if(_formKey.currentState!.validate()){
-      setState(() {
-        isLoading = true;
-      });
-      // login backend code here...
-      log("\n email: ${emailController.text.toString()}");
-      log("\n password: ${passwordController.text.toString()}");
-      firebaseAuth.createUserWithEmailAndPassword(
-          email: emailController.text.toString(),
-          password: passwordController.text.toString(),
-          ).then((value){
-            // if sign-up process completes, then execute "then" BlocK.
-            setState(() {
-               isLoading = false;
-            });
-          }).onError((error, stackTrace) {
-            // in case of any error or exception to catch here....
-            Fluttertoast.showToast(msg: error.toString());
-            setState(() {
-              isLoading = false;
-            });
-          },);
+      loginController.login(
+          userEmail: emailController.text.toString(),
+          userPassword: passwordController.text.toString()
+      );
     }
   }
 
@@ -57,11 +41,9 @@ class _SignupScreenState extends State<SignupScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("SignUp Screen", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white),),
+        title: Text("Login Screen", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white),),
         backgroundColor: Colors.purple,
-
       ),
-      /// Body
       body: SizedBox(
         width: double.infinity,
         child: Padding(
@@ -113,9 +95,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       Text(" Enter Password", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),),
                       TextFormField(
                         controller: passwordController,
-                        onFieldSubmitted: (value){
-
-                        },
+                        onFieldSubmitted: (value){},
                         validator: (value){
                           if(value!.isEmpty){
                             return "Enter Password";
@@ -151,33 +131,33 @@ class _SignupScreenState extends State<SignupScreen> {
               SizedBox(height: 20),
 
               /// Login Button.
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                    style: ButtonStyle(backgroundColor: WidgetStateProperty.all(Colors.purple),),
-                    onPressed: () => signUp(),
-                    child: isLoading ?
-                    Padding(
-                      padding: const EdgeInsets.all(6.0),
-                      child: CircularProgressIndicator( color: Colors.white,),
-                    ) :
-                    Text("SignUp", style: TextStyle(fontWeight: FontWeight.w800,fontSize: 18, color: Colors.white),),
+              Obx(
+                ()=> SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                      style: ButtonStyle(backgroundColor: WidgetStateProperty.all(Colors.purple),),
+                      onPressed: () => login(),
+                      child: loginController.isLoading.value ? Padding(
+                        padding: const EdgeInsets.all(6.0),
+                        child: CircularProgressIndicator( color: Colors.white,),
+                      ) :
+                      Text("Login", style: TextStyle(fontWeight: FontWeight.w800,fontSize: 18, color: Colors.white),)
+                  ),
                 ),
               ),
               SizedBox(height: 8),
 
-              /// Already have an account? login button..
+              /// Don't have an account Signup button.
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text("Already have an account?", style: TextStyle(fontSize: 16, fontWeight: FontWeight.normal, color: Colors.black),),
+                  Text("Don't have an account?", style: TextStyle(fontSize: 16, fontWeight: FontWeight.normal, color: Colors.black),),
                   InkWell(
                     onTap: (){
-                      // Navigate to back to login screen
-                      Navigator.pop(context);
+                      // Navigate to signup screen
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => SignupScreen()));
                     },
-                    child: Text(" Login", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.purple),),
+                    child: Text(" SignUp", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.purple),),
                   ),
                 ],
               ),

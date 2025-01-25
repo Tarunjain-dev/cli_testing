@@ -1,6 +1,7 @@
-import 'package:cli_testing/screens/Splash_Screen.dart';
+import 'package:cli_testing/app/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:get/get.dart';
 import 'firebase_options.dart';
 
 void main() async{
@@ -11,21 +12,26 @@ void main() async{
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       title: 'Firebase Authentication Tutorial',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-          appBarTheme: AppBarTheme(
-            iconTheme: IconThemeData(color: Colors.white),
-          ),
+        appBarTheme: AppBarTheme(
+          iconTheme: IconThemeData(color: Colors.white),
         ),
-      home: SplashScreen(),
+      ),
+      initialRoute: AppRoutes.initialRoute,
+      getPages: AppRoutes.routes,
     );
   }
 }

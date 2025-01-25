@@ -1,19 +1,17 @@
-import 'package:cli_testing/screens/Auth_Screens/Signup_Screen.dart';
-import 'package:cli_testing/screens/Home_Screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cli_testing/app/screens/auth/signup/signup_controller.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:get/get.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class SignupScreen extends StatefulWidget {
+  const SignupScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _SignupScreenState extends State<SignupScreen> {
 
-  bool isLoading = false;
+  SignupController signupController = SignupController();
   final _formKey = GlobalKey<FormState>();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
@@ -26,31 +24,13 @@ class _LoginScreenState extends State<LoginScreen> {
     passwordController.dispose();
   }
 
-  /// Login backend logic from here...
-  FirebaseAuth firebaseAuth = FirebaseAuth.instance;
-  void login(){
+  // Signup method login here...
+  void signUp(){
     if(_formKey.currentState!.validate()){
-      setState(() {
-        isLoading = true;
-      });
-      // login backend code here...
-      firebaseAuth.signInWithEmailAndPassword(
-          email: emailController.text.toString(),
-          password: passwordController.text.toString()).then((value){
-            // if login process completed, "then" Block executes
-            setState(() {
-              isLoading = false;
-            });
-            Fluttertoast.showToast(msg: " User ${value.user!.email.toString()} has successfully login");
-            /// Don't use 'BuildContext's across async gaps...
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomeScreen(),));
-          }).onError((error, stackTrace) {
-            // in case of any error, we can catch here.
-            Fluttertoast.showToast(msg: error.toString());
-            setState(() {
-              isLoading = false;
-            });
-          },);
+      signupController.signup(
+          userEmail: emailController.text.toString(),
+          userPassword: passwordController.text.toString(),
+      );
     }
   }
 
@@ -58,9 +38,11 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Login Screen", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white),),
+        title: Text("SignUp Screen", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white),),
         backgroundColor: Colors.purple,
+
       ),
+      /// Body
       body: SizedBox(
         width: double.infinity,
         child: Padding(
@@ -69,7 +51,7 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Form(
-                key: _formKey,
+                  key: _formKey,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -112,7 +94,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       Text(" Enter Password", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),),
                       TextFormField(
                         controller: passwordController,
-                        onFieldSubmitted: (value){},
+                        onFieldSubmitted: (value){
+
+                        },
                         validator: (value){
                           if(value!.isEmpty){
                             return "Enter Password";
@@ -148,31 +132,36 @@ class _LoginScreenState extends State<LoginScreen> {
               SizedBox(height: 20),
 
               /// Login Button.
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                    style: ButtonStyle(backgroundColor: WidgetStateProperty.all(Colors.purple),),
-                    onPressed: () => login(),
-                    child: isLoading ? Padding(
-                      padding: const EdgeInsets.all(6.0),
-                      child: CircularProgressIndicator( color: Colors.white,),
-                    ) :
-                    Text("Login", style: TextStyle(fontWeight: FontWeight.w800,fontSize: 18, color: Colors.white),)
-                ),
-              ),
+               Obx(
+                 ()=> SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      style: ButtonStyle(backgroundColor: WidgetStateProperty.all(Colors.purple),),
+                      onPressed: () => signUp(),
+                      child: signupController.isLoading.value ?
+                      Padding(
+                        padding: const EdgeInsets.all(6.0),
+                        child: CircularProgressIndicator( color: Colors.white,),
+                      ) :
+                      Text("SignUp", style: TextStyle(fontWeight: FontWeight.w800,fontSize: 18, color: Colors.white),),
+                    ),
+                  ),
+               ),
+
               SizedBox(height: 8),
 
-              /// Don't have an account Signup button.
+              /// Already have an account? login button..
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text("Don't have an account?", style: TextStyle(fontSize: 16, fontWeight: FontWeight.normal, color: Colors.black),),
+                  Text("Already have an account?", style: TextStyle(fontSize: 16, fontWeight: FontWeight.normal, color: Colors.black),),
                   InkWell(
-                      onTap: (){
-                        // Navigate to signup screen
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => SignupScreen(),));
-                      },
-                      child: Text(" SignUp", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.purple),),
+                    onTap: (){
+                      // Navigate to back to login screen
+                      Navigator.pop(context);
+                    },
+                    child: Text(" Login", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.purple),),
                   ),
                 ],
               ),
